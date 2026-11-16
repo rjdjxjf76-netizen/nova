@@ -57,7 +57,7 @@ def main():
             "region": str(record.get("region", "")),
             "min_fw": str(record.get("min_fw", "")),
             "release": str(record.get("release", "")),
-            "cover_url": str(record.get("cover_url", "")),
+            "cover_url": str(record.get("cover_url") or record.get("cover") or record.get("image") or record.get("thumbnail") or record.get("icon") or ""),
         })
 
     if not items:
