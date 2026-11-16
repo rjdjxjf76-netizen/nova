@@ -228,7 +228,8 @@ static void drawHero(SDL_Renderer* r,const Item* it,SDL_Texture* cover,int oy) {
     const int X=32,Y=92-oy,W=954,H=270;
     box(r,X,Y,W,H,PANEL,CYAN);
     if(!it) { text(r,X+40,Y+110,"NOTHING HERE YET",3,MUTED); return; }
-    if(cover) { SDL_Rect dst{X+2,Y+2,W-4,H-4}; SDL_RenderCopy(r,cover,nullptr,&dst); } else scene(r,X,Y,W,H,*it);
+    scene(r,X,Y,W,H,*it);
+    if(cover) { SDL_Rect dst{X+710,Y+22,220,220}; SDL_RenderCopy(r,cover,nullptr,&dst); }
     SDL_SetRenderDrawBlendMode(r,SDL_BLENDMODE_BLEND);
     rect(r,X+2,Y+2,470,H-4,{10,5,26,185}); rect(r,X+472,Y+2,60,H-4,{10,5,26,90}); rect(r,X+532,Y+2,50,H-4,{10,5,26,40});
     SDL_SetRenderDrawBlendMode(r,SDL_BLENDMODE_NONE);
