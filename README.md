@@ -1,4 +1,4 @@
-# PS4 Market — Build 4 (PKG build verified, not yet run on a console)
+# Nova Market — Build 4 (PKG build verified, not yet run on a console)
 
 This is an original C++/SDL2 native UI prototype for a standalone PS4 homebrew application.
 
