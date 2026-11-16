@@ -1,0 +1,36 @@
+name: Extract NOVA Build 4 source
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'NOVA_Build4_GitHub_Catalog_Update (1).zip'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  extract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Extract project into repository root
+        run: |
+          set -euo pipefail
+          archive='NOVA_Build4_GitHub_Catalog_Update (1).zip'
+          test -f "$archive"
+          unzip -oq "$archive" -d .
+          rm "$archive"
+      - name: Commit extracted project files
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No extracted file changes to commit."
+          else
+            git commit -m "Extract NOVA Build 4 project files"
+            git push
+          fi
