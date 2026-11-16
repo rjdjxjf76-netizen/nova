@@ -27,7 +27,8 @@ def main():
             if len(raw) > 12 * 1024 * 1024:
                 raise ValueError("image exceeds 12 MiB")
             with Image.open(io.BytesIO(raw)) as image:
-                image = ImageOps.fit(image.convert("RGB"), (600, 400), method=Image.Resampling.LANCZOS)
+                image = ImageOps.fit(image.convert("RGB"), (128, 128), method=Image.Resampling.LANCZOS)
+                image = image.quantize(colors=64, method=Image.Quantize.FASTOCTREE)
                 image.save(os.path.join(args.out, "%04d.bmp" % index), format="BMP")
             ok += 1
         except Exception as exc:
