@@ -81,15 +81,15 @@ refresh-covers: refresh-catalog
 	python3 tools/fetch_nova_covers.py --catalog $(CATALOG) --out $(COVERS)
 
 pkg: $(BUILD)/eboot.bin $(BUILD)/param.sfo refresh-covers
-	rm -rf $(STAGE) && mkdir -p $(STAGE)/sce_sys/about $(STAGE)/sce_module $(STAGE)/sce_sys/covers
+	rm -rf $(STAGE) && mkdir -p $(STAGE)/sce_sys/about $(STAGE)/sce_module
 	cp $(BUILD)/eboot.bin $(STAGE)/
 	cp $(BUILD)/param.sfo pkg/sce_sys/icon0.png $(STAGE)/sce_sys/
 	cp $(CATALOG) $(STAGE)/sce_sys/catalog.json
-	if [ -d $(COVERS) ]; then cp -R $(COVERS)/. $(STAGE)/sce_sys/covers/; fi
+	if [ -d $(COVERS) ]; then cp -R $(COVERS)/. $(STAGE)/sce_sys/; fi
 	cp $(RIGHT) $(STAGE)/sce_sys/about/
 	cp $(MODULES) $(STAGE)/sce_module/
 	cd $(STAGE) && $(BIN)/create-gp4 -out pkg.gp4 --content-id=$(CONTENT_ID) --files "$$(find . -type f | sed 's|^\./||' | sort | tr '\n' ' ')"
-	cd $(STAGE) && $(PKGTOOL) pkg_build pkg.gp4
+	cd $(STAGE) && $(PKGTOOL) pkg_build pkg.gp4 .
 	mv $(STAGE)/*.pkg $(BUILD)/
 	@ls -l $(BUILD)/*.pkg
 

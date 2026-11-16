@@ -378,7 +378,7 @@ int main(int argc,char** argv) {
 
     std::vector<SDL_Texture*> covers(items.size(),nullptr);
     for(size_t i=0;i<items.size();++i) {
-        char path[128]; snprintf(path,sizeof path,"/app0/sce_sys/covers/%04u.bmp",(unsigned)i);
+        char path[128]; snprintf(path,sizeof path,"/app0/sce_sys/%04u.bmp",(unsigned)i);
         SDL_Surface* image=SDL_LoadBMP(path);
         if(image) { covers[i]=SDL_CreateTextureFromSurface(ren,image); SDL_FreeSurface(image); }
     }
