@@ -79,7 +79,8 @@ refresh-catalog:
 pkg: $(BUILD)/eboot.bin $(BUILD)/param.sfo refresh-catalog
 	rm -rf $(STAGE) && mkdir -p $(STAGE)/sce_sys/about $(STAGE)/sce_module
 	cp $(BUILD)/eboot.bin $(STAGE)/
-	cp $(BUILD)/param.sfo pkg/sce_sys/icon0.png $(STAGE)/sce_sys/\n\tcp $(CATALOG) $(STAGE)/sce_sys/catalog.json
+	cp $(BUILD)/param.sfo pkg/sce_sys/icon0.png $(STAGE)/sce_sys/
+	cp $(CATALOG) $(STAGE)/sce_sys/catalog.json
 	cp $(RIGHT) $(STAGE)/sce_sys/about/
 	cp $(MODULES) $(STAGE)/sce_module/
 	cd $(STAGE) && $(BIN)/create-gp4 -out pkg.gp4 --content-id=$(CONTENT_ID) --files "$$(find . -type f | sed 's|^\./||' | sort | tr '\n' ' ')"
