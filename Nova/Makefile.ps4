@@ -17,6 +17,7 @@ PKGTOOL     := $(BIN)/PkgTool.Core
 BUILD       := build
 STAGE       := $(BUILD)/stage
 CATALOG     := $(BUILD)/catalog.json
+COVERS      := $(BUILD)/covers
 SDL2_INC    ?= $(TC)/include/SDL2
 SDL2_LIB    ?= $(TC)/lib
 SRCS        := src/main.cpp src/platform_ps4.cpp src/http_download.cpp src/sha256.cpp src/catalog.cpp
@@ -76,11 +77,15 @@ refresh-catalog:
 	@mkdir -p $(BUILD)
 	python3 tools/sync_nova_catalog.py --out $(CATALOG)
 
-pkg: $(BUILD)/eboot.bin $(BUILD)/param.sfo refresh-catalog
-	rm -rf $(STAGE) && mkdir -p $(STAGE)/sce_sys/about $(STAGE)/sce_module
+refresh-covers: refresh-catalog
+	python3 tools/fetch_nova_covers.py --catalog $(CATALOG) --out $(COVERS)
+
+pkg: $(BUILD)/eboot.bin $(BUILD)/param.sfo refresh-covers
+	rm -rf $(STAGE) && mkdir -p $(STAGE)/sce_sys/about $(STAGE)/sce_module $(STAGE)/sce_sys/covers
 	cp $(BUILD)/eboot.bin $(STAGE)/
 	cp $(BUILD)/param.sfo pkg/sce_sys/icon0.png $(STAGE)/sce_sys/
 	cp $(CATALOG) $(STAGE)/sce_sys/catalog.json
+	if [ -d $(COVERS) ]; then cp -R $(COVERS)/. $(STAGE)/sce_sys/covers/; fi
 	cp $(RIGHT) $(STAGE)/sce_sys/about/
 	cp $(MODULES) $(STAGE)/sce_module/
 	cd $(STAGE) && $(BIN)/create-gp4 -out pkg.gp4 --content-id=$(CONTENT_ID) --files "$$(find . -type f | sed 's|^\./||' | sort | tr '\n' ' ')"
@@ -89,4 +94,4 @@ pkg: $(BUILD)/eboot.bin $(BUILD)/param.sfo refresh-catalog
 
 clean:
 	rm -rf $(BUILD)
-.PHONY: all pkg clean refresh-catalog
+.PHONY: all pkg clean refresh-catalog refresh-covers
