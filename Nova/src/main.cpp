@@ -8,7 +8,7 @@
 #include <cmath>
 #include <sys/stat.h>
 
-// PS4 Market, build 4: NOVA-style SDL2 UI (tabs on L1/R1). Catalog from catalog.json (or a built-in sample),
+// NOVA: native SDL2 storefront UI (tabs on L1/R1). Catalog from catalog.json (or a built-in sample),
 // details screen, confirm dialog, hash-verified downloads. Network/hash/storage live in
 // platform_ps4.cpp + http_download.cpp; installing the saved .pkg is left to the user.
 
@@ -235,7 +235,7 @@ static void drawHero(SDL_Renderer* r,const Item* it,int oy) {
     box(r,X+40,Y+34,tw(it->type,1)+44,24,{30,18,64,255},LINE); icon(r,X+50,Y+40,3,1,CYAN); text(r,X+64,Y+41,it->type,1,CYAN);
     std::string nm=it->name.substr(0,22); text(r,X+40,Y+78,nm,nm.size()>14?3:4,WHITE);
     int y=Y+124; for(const std::string& l:wrap(it->desc,32,3)) { text(r,X+40,y,l,2,{225,214,250,255}); y+=24; }
-    box(r,X+40,Y+198,204,42,{20,10,46,255},CYAN); icon(r,X+58,Y+211,4,2,CYAN); text(r,X+86,Y+212,"DOWNLOAD NOW",2,CYAN);
+    box(r,X+40,Y+198,204,42,{20,10,46,255},CYAN); icon(r,X+58,Y+211,4,2,CYAN); text(r,X+86,Y+212,"VIEW DETAILS",2,CYAN);
 }
 static void drawTile(SDL_Renderer* r,int x,int y,const Item& t,bool sel,bool fav) {
     if(sel) glow(r,x,y,150,137,CYAN);
