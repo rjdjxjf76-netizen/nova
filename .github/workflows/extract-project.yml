@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - 'NOVA_Build4_GitHub_Catalog_Update (1).zip'
+      - '.github/workflows/extract-project.yml'
   workflow_dispatch:
 
 permissions:
