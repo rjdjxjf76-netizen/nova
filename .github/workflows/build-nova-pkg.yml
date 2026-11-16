@@ -1,0 +1,63 @@
+name: Build NOVA PS4 PKG
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'Nova/**'
+      - '.github/workflows/build-nova-pkg.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang-18 lld-18 make python3 curl ca-certificates libicu70
+          sudo ln -sf /usr/bin/clang++-18 /usr/local/bin/clang++
+          sudo ln -sf /usr/bin/ld.lld-18 /usr/local/bin/ld.lld
+          mkdir -p "$RUNNER_TEMP/ssl11"
+          curl -fsSL 'https://deb.debian.org/debian/pool/main/o/openssl/libssl1.1_1.1.1w-0+deb11u1_amd64.deb' -o "$RUNNER_TEMP/libssl11.deb"
+          sudo dpkg -i "$RUNNER_TEMP/libssl11.deb"
+
+      - name: Download and verify OpenOrbis toolchain v0.5.4
+        run: |
+          set -euo pipefail
+          url='https://github.com/OpenOrbis/OpenOrbis-PS4-Toolchain/releases/download/v0.5.4/toolchain-llvm-18.tar.gz'
+          curl -fL "$url" -o "$RUNNER_TEMP/toolchain.tar.gz"
+          echo '3c7cd5bb593ca74fa1c13fd59f3938dc0fc07985167f7275063019e63abe4526  '"$RUNNER_TEMP/toolchain.tar.gz" | sha256sum -c -
+          mkdir -p "$RUNNER_TEMP/openorbis"
+          tar -xzf "$RUNNER_TEMP/toolchain.tar.gz" -C "$RUNNER_TEMP/openorbis"
+          link_file="$(find "$RUNNER_TEMP/openorbis" -name link.x -type f -print -quit)"
+          test -n "$link_file"
+          echo "OO_PS4_TOOLCHAIN=$(dirname "$link_file")" >> "$GITHUB_ENV"
+          echo "SSL11_LIB=/usr/lib/x86_64-linux-gnu" >> "$GITHUB_ENV"
+
+      - name: Refresh game metadata and build PKG
+        working-directory: Nova
+        run: |
+          set -euo pipefail
+          clang++ --version
+          python3 tools/sync_nova_catalog.py --out build/catalog.json
+          python3 - <<'PY'
+          import json
+          with open("build/catalog.json", encoding="utf-8") as f:
+              data = json.load(f)
+          print("Metadata entries:", len(data.get("items", [])))
+          PY
+          bash build-pkg.sh
+
+      - name: Upload NOVA package
+        uses: actions/upload-artifact@v4
+        with:
+          name: NOVA-PS4-PKG
+          path: Nova/build/*.pkg
+          if-no-files-found: error
+          retention-days: 14
