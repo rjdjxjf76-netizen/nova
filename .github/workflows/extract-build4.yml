@@ -1,0 +1,43 @@
+name: Extract NOVA Build 4 source
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'NOVA_Build4_GitHub_Catalog_Update (1).zip'
+      - '.github/workflows/extract-build4.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  extract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Extract source files into repository
+        run: |
+          set -euo pipefail
+          ARCHIVE='NOVA_Build4_GitHub_Catalog_Update (1).zip'
+          test -f "$ARCHIVE"
+          unzip -o "$ARCHIVE" -d .
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path("Makefile.ps4")
+          s = p.read_text()
+          s = s.replace('$(STAGE)/sce_sys/\\n\\tcp $(CATALOG)', '$(STAGE)/sce_sys/\n\tcp $(CATALOG)')
+          p.write_text(s)
+          PY
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add README.md CMakeLists.txt Makefile.ps4 build-pkg.sh build-linux.sh src tools pkg assets
+          git add .github/workflows/build-pkg.yml
+          if ! git diff --cached --quiet; then
+            git commit -m "Extract NOVA Build 4 project files"
+            git push
+          else
+            echo "Extracted project files are already up to date."
+          fi
