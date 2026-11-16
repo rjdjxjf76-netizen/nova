@@ -1,4 +1,4 @@
-# Nova Market — Build 4 (PKG build verified, not yet run on a console)
+# NOVA — PS4 storefront (CI build in progress; console testing not verified)
 
 This is an original C++/SDL2 native UI prototype for a standalone PS4 homebrew application.
 
@@ -21,7 +21,7 @@ export OO_PS4_TOOLCHAIN=/path/to/OpenOrbis/PS4Toolchain
 ./build-pkg.sh            # -> build/IV0000-PSMK00001_00-PS4MARKET0000001.pkg
 ```
 - `PkgTool.Core` is .NET Core 3.0 and only understands OpenSSL 1.x. On a distro with only OpenSSL 3, set `SSL11_LIB` to a folder holding `libssl.so.1.1` + `libcrypto.so.1.1` (the CI workflow does this).
-- Or push to GitHub: `.github/workflows/build-pkg.yml` does the same on `ubuntu-24.04` and uploads the PKG as an artifact.
+- GitHub Actions: `.github/workflows/build-nova-pkg.yml` builds on `ubuntu-24.04` and uploads the PKG as the `NOVA-PS4-PKG` artifact when the workflow succeeds.
 - The CMake files are only a starting point and are not used for the PKG.
 
 ## NOVA GitHub catalog integration
@@ -45,9 +45,10 @@ export OO_PS4_TOOLCHAIN=/path/to/OpenOrbis/PS4Toolchain
   - **Circle on the home screen no longer quits the app** (that was the "crash"). Circle still goes back from details/dialogs.
   - Desktop keys: Q / E = L1 / R1, F = favorite. `tools/render-test.sh` now replays a tab-switching script.
 
-## Verified vs not verified
-- Verified: all sources compile and link against the real PS4 SDK/SDL2; the PKG builds from a clean checkout; its entries list correctly and the extracted `eboot.bin` is byte-identical to the one that went in; the desktop test scripts still pass.
-- **Not verified: running on a console.** Nothing here has been executed on a PS4. Expect to debug on the device (video init, pad input, `/data` write access, network).
+## Verification status
+- The first GitHub Actions attempt stopped during dependency installation because `clang-18` and `lld-18` were unavailable on the Ubuntu 22.04 runner. The workflow has been moved to Ubuntu 24.04 to use the available LLVM 18 packages.
+- A successful `.pkg` build has **not yet been confirmed**. The package artifact will appear only after the workflow completes successfully.
+- **Not verified: running on a console.** Nothing here has been executed on a PS4. Expect device-specific testing for video initialization, controller input, `/data` write access, and network behavior.
 
 ## What build 3 changes
 - Fixed: the bitmap font lookup was mismatched (table is 0-9 then A-Z), so all text rendered as garbage.
