@@ -224,11 +224,11 @@ static void scene(SDL_Renderer* r,int X,int Y,int W,int H,const Item& it) {
     rect(r,car+14,cby+26,24,12,{8,4,20,255}); rect(r,car+88,cby+26,24,12,{8,4,20,255}); rect(r,car+122,cby+16,6,5,{255,70,120,255});
     glow(r,car+122,cby+16,6,5,Color{255,70,120,255});
 }
-static void drawHero(SDL_Renderer* r,const Item* it,int oy) {
+static void drawHero(SDL_Renderer* r,const Item* it,SDL_Texture* cover,int oy) {
     const int X=32,Y=92-oy,W=954,H=270;
     box(r,X,Y,W,H,PANEL,CYAN);
     if(!it) { text(r,X+40,Y+110,"NOTHING HERE YET",3,MUTED); return; }
-    scene(r,X,Y,W,H,*it);
+    if(cover) { SDL_Rect dst{X+2,Y+2,W-4,H-4}; SDL_RenderCopy(r,cover,nullptr,&dst); } else scene(r,X,Y,W,H,*it);
     SDL_SetRenderDrawBlendMode(r,SDL_BLENDMODE_BLEND);
     rect(r,X+2,Y+2,470,H-4,{10,5,26,185}); rect(r,X+472,Y+2,60,H-4,{10,5,26,90}); rect(r,X+532,Y+2,50,H-4,{10,5,26,40});
     SDL_SetRenderDrawBlendMode(r,SDL_BLENDMODE_NONE);
@@ -237,11 +237,12 @@ static void drawHero(SDL_Renderer* r,const Item* it,int oy) {
     int y=Y+124; for(const std::string& l:wrap(it->desc,32,3)) { text(r,X+40,y,l,2,{225,214,250,255}); y+=24; }
     box(r,X+40,Y+198,204,42,{20,10,46,255},CYAN); icon(r,X+58,Y+211,4,2,CYAN); text(r,X+86,Y+212,"VIEW DETAILS",2,CYAN);
 }
-static void drawTile(SDL_Renderer* r,int x,int y,const Item& t,bool sel,bool fav) {
+static void drawTile(SDL_Renderer* r,int x,int y,const Item& t,SDL_Texture* cover,bool sel,bool fav) {
     if(sel) glow(r,x,y,150,137,CYAN);
     box(r,x,y,150,137,PANEL,sel?CYAN:LINE);
     vgrad(r,x+2,y+2,146,133,tint(t.a),tint(t.b));
-    text(r,x+(150-tw(t.glyph,5))/2,y+30,t.glyph,5,WHITE);
+    if(cover) { SDL_Rect dst{x+2,y+2,146,133}; SDL_RenderCopy(r,cover,nullptr,&dst); }
+    else text(r,x+(150-tw(t.glyph,5))/2,y+30,t.glyph,5,WHITE);
     SDL_SetRenderDrawBlendMode(r,SDL_BLENDMODE_BLEND); rect(r,x+2,y+101,146,34,{10,5,26,200}); SDL_SetRenderDrawBlendMode(r,SDL_BLENDMODE_NONE);
     text(r,x+10,y+106,t.name.substr(0,23),1,WHITE); text(r,x+10,y+120,t.type,1,CYAN);
     if(fav) text(r,x+140-tw("FAV",1),y+120,"FAV",1,WARN);
@@ -262,7 +263,7 @@ static void drawStatus(SDL_Renderer* r,const DownloadStatus& ds,const std::strin
 }
 static void drawHome(SDL_Renderer* ren,const std::vector<Item>& items,const std::vector<int>& view,int tab,int focus,
                      const std::vector<bool>& fav,const DownloadStatus& ds,const std::string& dlName,
-                     const std::string& note,bool noteWarn,int nDone,const std::string& updated) {
+                     const std::string& note,bool noteWarn,int nDone,const std::string& updated,const std::vector<SDL_Texture*>& covers) {
     vgrad(ren,0,0,1280,720,{14,8,34,255},{34,13,70,255}); waves(ren);
     const int vn=(int)view.size(), page=vn?focus/12:0, pages=vn?(vn+11)/12:1;
     const int row=vn?(focus%12)/6:0, oy=row?233:0;            // second row scrolls up when it has focus
@@ -271,14 +272,14 @@ static void drawHome(SDL_Renderer* ren,const std::vector<Item>& items,const std:
         drawQueue(ren,72,180,860,ds,dlName);
         text(ren,32,400,"FINISHED DOWNLOADS ARE LISTED IN LIBRARY",2,MUTED);
     } else {
-        drawHero(ren,vn?&items[view[focus]]:nullptr,oy);
+        drawHero(ren,vn?&items[view[focus]]:nullptr,vn&&view[focus]<(int)covers.size()?covers[view[focus]]:nullptr,oy);
         const int dots=std::min(vn,5);
         for(int i=0;i<dots;i++) rect(ren,479-dots*9+i*18+(i==focus%5?-2:0),(378-oy)+(i==focus%5?-2:0),i==focus%5?12:8,i==focus%5?12:8,i==focus%5?CYAN:LINE);
         sect(ren,405-oy,"TRENDING","");
         if(vn>6) sect(ren,612-oy,"NEW RELEASES","PAGE "+std::to_string(page+1)+" / "+std::to_string(pages)+" >");
         if(vn==0) text(ren,48,460,tab==3?"PRESS SQUARE ON AN ITEM TO FAVORITE IT":tab==5?"FINISHED DOWNLOADS APPEAR HERE":"NO LISTINGS IN THIS TAB",2,MUTED);
         for(int i=0;i<12;i++) { int idx=page*12+i; if(idx>=vn) break;
-            drawTile(ren,32+(i%6)*161,(i<6?433:640)-oy,items[view[idx]],idx==focus,fav[view[idx]]); }
+            drawTile(ren,32+(i%6)*161,(i<6?433:640)-oy,items[view[idx]],view[idx]<(int)covers.size()?covers[view[idx]]:nullptr,idx==focus,fav[view[idx]]); }
     }
     rect(ren,0,0,1280,72,{12,7,30,255}); drawTop(ren,tab);     // top bar stays above scrolled content
     panel(ren,1008,100,242,264,"STORE INFO",11);
@@ -374,6 +375,12 @@ int main(int argc,char** argv) {
     for(int i=0;i<SDL_NumJoysticks();i++) if(SDL_IsGameController(i)) SDL_GameControllerOpen(i);
 #endif
 
+    std::vector<SDL_Texture*> covers(items.size(),nullptr);
+    for(size_t i=0;i<items.size();++i) {
+        char path[128]; snprintf(path,sizeof path,"/app0/sce_sys/covers/%04u.bmp",(unsigned)i);
+        SDL_Surface* image=SDL_LoadBMP(path);
+        if(image) { covers[i]=SDL_CreateTextureFromSurface(ren,image); SDL_FreeSurface(image); }
+    }
     bool running=true; int focus=0, tab=0, dlIdx=-1; bool libRec=false; Screen screen=Screen::Home;
     std::vector<bool> fav(n,false); std::vector<int> view, lib;
     auto rebuild=[&]() {
@@ -477,7 +484,7 @@ int main(int argc,char** argv) {
         if(ds.state==DlState::Running) platform_poll_download(ds);
         if(ds.state==DlState::Done&&!libRec) { libRec=true; if(dlIdx>=0&&std::find(lib.begin(),lib.end(),dlIdx)==lib.end()) lib.push_back(dlIdx); rebuild(); }
         SDL_SetRenderDrawColor(ren,BG.r,BG.g,BG.b,BG.a); SDL_RenderClear(ren);
-        drawHome(ren,items,view,tab,focus,fav,ds,dlName,note,noteWarn,(int)lib.size(),updated);
+        drawHome(ren,items,view,tab,focus,fav,ds,dlName,note,noteWarn,(int)lib.size(),updated,covers);
         if(screen!=Screen::Home) {
             drawDetails(ren,items[cur]);
             if(screen==Screen::Confirm)
@@ -491,6 +498,7 @@ int main(int argc,char** argv) {
         SDL_RenderPresent(ren);
 #endif
     }
+    for(SDL_Texture* t:covers) if(t) SDL_DestroyTexture(t);
     SDL_DestroyRenderer(ren); SDL_DestroyWindow(win); SDL_Quit();
     return 0;
 }
