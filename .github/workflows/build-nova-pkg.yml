@@ -20,7 +20,7 @@ jobs:
       - name: Install build dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y clang-18 lld-18 make python3 curl ca-certificates libicu74
+          sudo apt-get install -y clang-18 lld-18 make python3 python3-pil curl ca-certificates libicu74
           sudo ln -sf /usr/bin/clang++-18 /usr/local/bin/clang++
           sudo ln -sf /usr/bin/ld.lld-18 /usr/local/bin/ld.lld
           mkdir -p "$RUNNER_TEMP/ssl11"
