@@ -23,6 +23,8 @@ jobs:
           test -f "$archive"
           unzip -oq "$archive" -d .
           rm "$archive"
+          # The GitHub App token cannot push new workflow files; add build-pkg.yml separately via the GitHub API.
+          rm -f .github/workflows/build-pkg.yml
       - name: Commit extracted project files
         run: |
           set -euo pipefail
